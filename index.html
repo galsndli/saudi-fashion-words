@@ -153,8 +153,8 @@
     <div class="card">
 
       <div class="question">
-        بكلمة واحدة… ماذا تعني لك الأزياء السعودية؟
-      </div>
+       بكلمة واحدة: كيف تساهمين في مستقبل الأزياء السعودي؟
+      </div>ة
 
       <div class="input-area">
 
@@ -196,9 +196,9 @@
 
     const SUPABASE_URL = "https://uwvoxsijuuwiyilbcvmo.supabase.co/rest/v1/";
 
-    const SUPABASE_KEY = "sb_publishable_Ah4wUKU-jObPSGXoh2DeTg_UNSZs9HE";
-
-
+    const supabaseClient = window.supabase.createClient( SUPABASE_URL,SUPABASE_KEY
+      );
+ 
     const supabaseClient =
       window.supabase.createClient(
         SUPABASE_URL,
