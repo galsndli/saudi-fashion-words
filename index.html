@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>عزّنا برؤيتنا</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     * {
@@ -13,14 +14,13 @@
 
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
       background: #f7f2ea;
       color: #29251f;
-      min-height: 100vh;
     }
 
     .page {
-      width: 100%;
       max-width: 1100px;
       margin: auto;
       padding: 45px 20px;
@@ -35,8 +35,8 @@
 
     .subtitle {
       font-size: 20px;
-      margin-bottom: 35px;
       color: #665f55;
+      margin-bottom: 35px;
     }
 
     .card {
@@ -56,8 +56,8 @@
       display: flex;
       gap: 10px;
       justify-content: center;
-      margin-bottom: 30px;
       flex-wrap: wrap;
+      margin-bottom: 25px;
     }
 
     input {
@@ -66,13 +66,8 @@
       border: 1px solid #d8d0c5;
       border-radius: 15px;
       font-size: 17px;
-      text-align: right;
       outline: none;
       background: white;
-    }
-
-    input:focus {
-      border-color: #8a7761;
     }
 
     button {
@@ -85,13 +80,13 @@
       cursor: pointer;
     }
 
-    button:hover {
-      opacity: 0.85;
+    button:disabled {
+      opacity: 0.6;
     }
 
     .counter {
       color: #776f65;
-      margin-bottom: 20px;
+      margin: 15px 0;
     }
 
     .cloud {
@@ -101,19 +96,25 @@
       justify-content: center;
       align-content: center;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 12px;
       padding: 25px;
     }
 
     .word {
       display: inline-block;
-      padding: 8px 14px;
+      padding: 7px 13px;
       font-weight: bold;
       transition: transform 0.2s;
     }
 
     .word:hover {
       transform: scale(1.1);
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 10px;
+      color: #776f65;
     }
 
     .footer {
@@ -127,22 +128,11 @@
         font-size: 34px;
       }
 
-      .subtitle {
-        font-size: 17px;
-      }
-
       .question {
         font-size: 20px;
       }
 
-      .card {
-        padding: 25px 15px;
-      }
-
-      input {
-        width: 100%;
-      }
-
+      input,
       button {
         width: 100%;
       }
@@ -175,7 +165,7 @@
           maxlength="30"
         >
 
-        <button onclick="addWord()">
+        <button id="addButton" onclick="addWord()">
           أضف كلمتك
         </button>
 
@@ -185,13 +175,9 @@
         عدد المشاركات: <strong id="counter">0</strong>
       </div>
 
-      <div class="cloud" id="cloud">
-        <div class="word" style="font-size:32px;">هوية</div>
-        <div class="word" style="font-size:25px;">أصالة</div>
-        <div class="word" style="font-size:40px;">فخر</div>
-        <div class="word" style="font-size:22px;">تراث</div>
-        <div class="word" style="font-size:30px;">إبداع</div>
-      </div>
+      <div id="message" class="message"></div>
+
+      <div id="cloud" class="cloud"></div>
 
     </div>
 
@@ -204,60 +190,159 @@
 
   <script>
 
-    let words = [
-      "هوية",
-      "أصالة",
-      "فخر",
-      "تراث",
-      "إبداع"
-    ];
+    // =====================================================
+    // ضعي معلومات Supabase الخاصة بك هنا
+    // =====================================================
 
-    function addWord() {
+    const SUPABASE_URL = "https://uwvoxsijuuwiyilbcvmo.supabase.co/rest/v1/";
 
-      const input = document.getElementById("wordInput");
+    const SUPABASE_KEY = "sb_publishable_Ah4wUKU-jObPSGXoh2DeTg_UNSZs9HE";
 
-      const word = input.value.trim();
 
-      if (word === "") {
-        alert("اكتب كلمة أولاً");
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    // =====================================================
+    // عرض الكلمات
+    // =====================================================
+
+    async function loadWords() {
+
+      const { data, error } =
+        await supabaseClient
+          .from("words")
+          .select("*")
+          .order("created_at", {
+            ascending: true
+          });
+
+      if (error) {
+        console.error(error);
+        showMessage("حدث خطأ في تحميل الكلمات");
         return;
       }
 
-      words.push(word);
-
-      input.value = "";
-
-      displayWords();
+      displayWords(data || []);
     }
 
 
-    function displayWords() {
+    function displayWords(words) {
 
-      const cloud = document.getElementById("cloud");
+      const cloud =
+        document.getElementById("cloud");
 
       cloud.innerHTML = "";
 
-      words.forEach(function(word) {
+      document.getElementById("counter").textContent =
+        words.length;
 
-        const element = document.createElement("span");
+
+      words.forEach(function(item) {
+
+        const element =
+          document.createElement("span");
 
         element.className = "word";
 
         const size =
-          Math.floor(Math.random() * 22) + 20;
+          Math.floor(Math.random() * 25) + 20;
 
-        element.style.fontSize = size + "px";
+        element.style.fontSize =
+          size + "px";
 
-        element.textContent = word;
+        element.textContent =
+          item.word;
 
         cloud.appendChild(element);
 
       });
 
-      document.getElementById("counter").textContent =
-        words.length;
+    }
+
+
+    // =====================================================
+    // إضافة كلمة
+    // =====================================================
+
+    async function addWord() {
+
+      const input =
+        document.getElementById("wordInput");
+
+      const button =
+        document.getElementById("addButton");
+
+      const word =
+        input.value.trim();
+
+
+      if (!word) {
+
+        showMessage("اكتب كلمة أولاً");
+
+        return;
+      }
+
+
+      button.disabled = true;
+
+      showMessage("جاري إضافة كلمتك...");
+
+
+      const { error } =
+        await supabaseClient
+          .from("words")
+          .insert([
+            {
+              word: word
+            }
+          ]);
+
+
+      if (error) {
+
+        console.error(error);
+
+        showMessage(
+          "ما قدرت أضيف الكلمة، حاولي مرة ثانية"
+        );
+
+        button.disabled = false;
+
+        return;
+      }
+
+
+      input.value = "";
+
+      showMessage("تمت إضافة كلمتك 🤍");
+
+      button.disabled = false;
+
+      loadWords();
 
     }
+
+
+    function showMessage(text) {
+
+      document.getElementById("message").textContent =
+        text;
+
+    }
+
+
+    // =====================================================
+    // تحديث الكلمات تلقائيًا
+    // =====================================================
+
+    loadWords();
+
+    setInterval(loadWords, 3000);
 
   </script>
 
